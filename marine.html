@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ocean World</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'Comic Sans MS', cursive;
+    }
+   
+    /* Fullscreen video */
+    #bgVideo {
+  position: fixed;
+  top: 25%;
+  left: 45%;
+  transform: translate(-50%, -50%);
+  min-width: 100vw;
+  min-height: 100vh;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  z-index: -1;
+  pointer-events: none;
+  filter: brightness(0.8); /* Optional, dim effect */
+}
+
+  /* Ocean Container — place wherever you want (default: center) */
+    .ocean-container {
+      position: absolute;
+      top: 50%;         /* You can adjust this */
+      left: 50%;        /* You can adjust this */
+      transform: translate(-50%, -50%);
+      background: rgba(0, 255, 255, 0.15);
+      border: 4px dashed #00ffff;
+      border-radius: 40px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      animation: float 4s ease-in-out infinite;
+      box-shadow: 0 0 25px #00eaff, 0 0 50px #00eaff inset;
+      backdrop-filter: blur(5px);
+      z-index: 2;
+    }
+
+    .title {
+      color: #fff;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 5px #004466;
+    }
+
+    .button-wrapper {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    button {
+      background-color: #00d2ff;
+      border: none;
+      border-radius: 20px;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 15px #00eaff;
+    }
+
+    .play-btn {
+      background: linear-gradient(45deg, #00f2ff, #006eff);
+    }
+
+    .exit-btn {
+      background: linear-gradient(45deg, #ff6a6a, #ff0000);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-15px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Background Video -->
+  <video autoplay muted loop playsinline id="bgVideo">
+    <source src="C:\Users\Lenovo\Downloads\Untitled design (2).mp4" type="video/mp4">
+   </video>
+  
+
+  <!-- Background Ocean Sound -->
+  <audio id="bgSound" autoplay loop>
+    <source src="C:\Users\Lenovo\Downloads\copy-of-ocean-wave-1-online-audio-converter.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Floating Container -->
+  <div class="ocean-container">
+    <h1 class="title">Welcome to Ocean World!</h1>
+    <div class="button-wrapper">
+      <button class="play-btn" onclick="playSound('play')">▶ Play</button>
+      <button class="exit-btn" onclick="playSound('exit')">⛔ Exit</button>
+    </div>
+  </div>
+
+  <!-- Click Sounds -->
+  <audio id="playSound" src="C:\Users\Lenovo\Downloads\studio-audience-awwww-sound-fx.mp3"></audio>
+  <audio id="exitSound" src="C:\Users\Lenovo\Downloads\mouse-click-sound-fx.mp3"></audio>
+
+  <script>
+    function playSound(type) {
+      if (type === 'play') {
+        document.getElementById('playSound').play();
+        alert("Play clicked!");
+      } else {
+        document.getElementById('exitSound').play();
+        alert("Exit clicked!");
+      }
+    }
+
+    // Ensure ocean sound starts after user interaction
+    window.addEventListener('click', () => {
+      const bgSound = document.getElementById("bgSound");
+      if (bgSound.paused) {
+        bgSound.play();
+      }
+    });
+  </script>
+</body>
+</html>
