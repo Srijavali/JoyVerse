@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disney Shadow Match</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(to bottom right, #ffdee9, #b5ead7, #c7ceea, #ffffd2);
+      text-align: center;
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: url('https://www.transparenttextures.com/patterns/stardust.png');
+      opacity: 0.2;
+      z-index: 0;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .bubble {
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      animation: float 10s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) scale(0.5); opacity: 0.8; }
+      50% { transform: translateY(-150vh) scale(1); opacity: 0.5; }
+      100% { transform: translateY(150vh) scale(0.5); opacity: 0.8; }
+    }
+
+    .game-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 40px;
+      z-index: 1;
+      position: relative;
+    }
+
+    .shadow, .character {
+      width: 150px;
+      height: 150px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .shadow img {
+      width: 100px;
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+
+    .shadow.correct img {
+      opacity: 1;
+    }
+
+    .character img {
+      width: 100px;
+      cursor: grab;
+    }
+
+    .shadow.correct {
+      background-color: #a0e7a0;
+    }
+
+    .shadow.incorrect {
+      background-color: #ffadad;
+    }
+
+    .star {
+      position: absolute;
+      font-size: 40px;
+      opacity: 0;
+      animation: popStar 1s ease-out forwards;
+    }
+
+    .wrong-emoji {
+      position: absolute;
+      font-size: 40px;
+      top: 10px;
+      right: 10px;
+      animation: fadeOut 1s ease-out forwards;
+    }
+
+    @keyframes popStar {
+      0% { transform: translate(0, 0) scale(0); opacity: 1; }
+      100% { transform: translate(var(--x), var(--y)) scale(1.5); opacity: 0; }
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    #celebration {
+      margin-top: 40px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 1.5s ease-in forwards;
+    }
+
+    #celebration img {
+      width: 200px;
+      margin-top: 20px;
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    #exit-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    #exit-btn:hover {
+      background-color: #ff4d4d;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <button id="exit-btn">❌ Exit Game</button>
+
+  <h1>🌟 Match the Disney Character to Their Shadow!</h1>
+
+  <div style="font-size: 1.2em; color: #333; background: rgba(255,255,255,0.8); display: flex; justify-content: center; gap: 30px; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px;">
+    <div>Score: <span id="score">0</span></div>
+    <div>Time: <span id="timer">00:00</span></div>
+  </div>
+
+  <div class="game-container">
+    <!-- Shadow images -->
+    <div class="shadow" data-match="mickey"><img src="https://clipart-library.com/images/8cxnLyBMi.jpg" alt="Mickey Shadow"></div>
+    <div class="shadow" data-match="elsa"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1tptl0hIItI8j0uVaqCbDhlLlA-9BGzM0CGW1dqkpQbI0dLBj&s.jpg" alt="Elsa Shadow"></div>
+    <div class="shadow" data-match="aladdin"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUuoscxy5TjGhk7sRclBcgYvQCd_XPIi9RDROMiDVKzUFgIag&s.png" alt="Aladdin Shadow"></div>
+    <div class="shadow" data-match="moana"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwdLXoWBHVJRMV0OhDC3Bl-yE41RnIr1dFtveoqCRKa1tzXwQ&s.png" alt="Moana Shadow"></div>
+    <div class="shadow" data-match="pluto"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPhbUEkMHDp9aTU3Cc_eoEh3beHjftxcRBgFPllaSPVb0nVqw&s.png" alt="Pluto Shadow"></div>
+    <div class="shadow" data-match="pinocchio"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToYQFAVf4U8jX5Hm01Zu1v9WJAZbPDu05xFBEZkYQYdT_vKGQ&s.png" alt="Pinocchio Shadow"></div>
+  </div>
+
+  <div class="game-container characters-container" id="characters-container" style="margin-top: 50px;">
+    <!-- Character images -->
+    <div class="character" draggable="true" id="mickey" data-name="mickey"><img src="https://clipart-library.com/2023/18-189951_transparent-maus-clipart-transparent-background-mickey-mouse-png.png" alt="Mickey"></div>
+    <div class="character" draggable="true" id="elsa" data-name="elsa"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcQ71r_3V84oUuQmfID7EpUx8b-RVMXsPtxFYsEEnntTY2_e1C&s.jpg" alt="Elsa"></div>
+    <div class="character" draggable="true" id="aladdin" data-name="aladdin"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCOt4e7Zj15yqwG0xGO-DetqXyd4_dJNb_DWPthZGSHYyfFn0&s.jpg" alt="Aladdin"></div>
+    <div class="character" draggable="true" id="moana" data-name="moana"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYDI1Tx1HDVo8sr9XDVrTvP_7DcUnxP9MdYci1JYWjvx3vulc&s.png" alt="Moana"></div>
+    <div class="character" draggable="true" id="pluto" data-name="pluto"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCLNNzg84jDePj8OeER1EuN7L8V3MO4bwdj0iJJ-HmVd0JeWI&s.png" alt="Pluto"></div>
+    <div class="character" draggable="true" id="pinocchio" data-name="pinocchio"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQU7Vxe1-Eri7uw0Yjqt6wRdN-QuM-rvsO4F2-iwyc-rQmU9zAo&s.png" alt="Pinocchio"></div>
+  </div>
+
+  <div id="celebration">
+    <div style="color:#333; background:#fff; padding:20px; border-radius:15px; font-size:1.5em; box-shadow:0 0 20px rgba(0,0,0,0.2);">
+      🎉 <strong>Congratulations!</strong> You've matched all the Disney characters to their shadows! 🌟
+    </div>
+    <img src="https://i.pinimg.com/originals/ac/b6/08/acb608870038d4c671b830ecdc9eadd7.gif" alt="Dancing Mickey">
+  </div>
+
+  <script>
+    const characters = document.querySelectorAll('.character');
+    const shadows = document.querySelectorAll('.shadow');
+    const container = document.getElementById('characters-container');
+    const correctSound = new Audio('Audio_files\\short-crowd-cheer-6713.mp3');
+    const clapSound = new Audio('Audio_files\\shine-6-268910.mp3');
+
+    [...container.children].sort(() => Math.random() - 0.5).forEach(c => container.appendChild(c));
+
+    characters.forEach(character => {
+      character.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', character.dataset.name);
+      });
+    });
+
+    shadows.forEach(shadow => {
+      shadow.addEventListener('dragover', e => e.preventDefault());
+      shadow.addEventListener('drop', e => {
+        e.preventDefault();
+        const dragged = e.dataTransfer.getData('text/plain');
+        const match = shadow.dataset.match;
+        if (dragged === match) {
+          shadow.classList.add('correct');
+          correctSound.currentTime = 0;
+          correctSound.play();
+          updateScore(10);
+          const characterEl = document.getElementById(dragged);
+          const imgEl = characterEl.querySelector('img').cloneNode(true);
+          shadow.replaceChild(imgEl, shadow.querySelector('img'));
+          characterEl.style.transition = 'all 0.5s ease';
+          characterEl.style.transform = 'translateY(-50px)';
+          characterEl.style.opacity = '0';
+          setTimeout(() => {
+            characterEl.remove();
+            checkWinCondition();
+          }, 500);
+          for (let i = 0; i < 5; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.textContent = '⭐';
+            const x = Math.random() * 100 - 50;
+            const y = Math.random() * -100 - 20;
+            star.style.setProperty('--x', `${x}px`);
+            star.style.setProperty('--y', `${y}px`);
+            shadow.appendChild(star);
+            setTimeout(() => shadow.removeChild(star), 1000);
+          }
+        } else {
+          shadow.classList.add('incorrect');
+          const wrong = document.createElement('div');
+          wrong.className = 'wrong-emoji';
+          wrong.textContent = '❌';
+          shadow.appendChild(wrong);
+          setTimeout(() => {
+            shadow.classList.remove('incorrect');
+            shadow.removeChild(wrong);
+          }, 1000);
+        }
+      });
+    });
+
+    let score = 0;
+    let seconds = 0;
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+
+    function updateScore(points) {
+      score += points;
+      scoreEl.textContent = score;
+    }
+
+    function formatTime(sec) {
+      const mins = Math.floor(sec / 60);
+      const secs = sec % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    const timerInterval = setInterval(() => {
+      seconds++;
+      timerEl.textContent = formatTime(seconds);
+    }, 1000);
+
+    function checkWinCondition() {
+      if (document.querySelectorAll('.character').length === 0) {
+        document.getElementById('celebration').style.display = 'flex';
+        clapSound.currentTime = 0;
+        clapSound.play();
+        clearInterval(timerInterval);
+      }
+    }
+
+    // Exit Button Functionality
+    document.getElementById('exit-btn').addEventListener('click', () => {
+      if (confirm("Are you sure you want to exit the game?")) {
+        window.location.href = 'view.html';
+      }
+    });
+
+    setInterval(() => {
+      const bubble = document.createElement('div');
+      const size = Math.random() * 20 + 10;
+      bubble.classList.add('bubble');
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${Math.random() * 100}%`;
+      document.body.appendChild(bubble);
+      setTimeout(() => document.body.removeChild(bubble), 10000);
+    }, 500);
+  </script>
+</body>
+</html>

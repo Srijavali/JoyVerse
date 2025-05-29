@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JoyVerse Ocean Word Game</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+    }
+
+    #ocean-background {
+      background: url('images\\background\\download.jpg') no-repeat center center/cover;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .marine {
+      position: absolute;
+      width: 150px;
+      transition: all 1s ease;
+      pointer-events: none;
+    }
+
+    .mermaid {
+      position: absolute;
+      width: 200px;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      z-index: 40;
+    }
+
+    .wiggle {
+      animation: wiggle 2s infinite;
+    }
+
+    .sparkle {
+      animation: sparkle 3s forwards;
+    }
+
+    @keyframes wiggle {
+      0% { transform: rotate(0deg) translateY(0); }
+      25% { transform: rotate(5deg) translateY(-5px); }
+      50% { transform: rotate(-5deg) translateY(5px); }
+      75% { transform: rotate(5deg) translateY(-5px); }
+      100% { transform: rotate(0deg) translateY(0); }
+    }
+
+    @keyframes sparkle {
+      0% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes slideDown {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(30px); opacity: 0; }
+    }
+
+    @keyframes bounceOut {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.8; }
+      100% { transform: scale(0.8); opacity: 0; }
+    }
+
+    @keyframes rotateOut {
+      0% { transform: rotate(0deg) scale(1); opacity: 1; }
+      100% { transform: rotate(180deg) scale(0.5); opacity: 0; }
+    }
+
+    @keyframes revealFade {
+      0% { opacity: 0; transform: scale(0.5); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes revealBounce {
+      0% { transform: translateY(-20px); opacity: 0; }
+      50% { transform: translateY(10px); opacity: 0.8; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes revealRotate {
+      0% { transform: rotateY(90deg); opacity: 0; }
+      100% { transform: rotateY(0deg); opacity: 1; }
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    #game-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    #word-image {
+      width: 200px;
+      margin-bottom: 20px;
+    }
+
+    .starfish {
+      display: inline-block;
+      margin: 10px;
+      padding: 20px;
+      background: url("images\\background\\3d star_fro_names.png") no-repeat center center/cover;
+      width: 80px;
+      height: 80px;
+      font-size: 24px;
+      font-weight: bold;
+      color: navy;
+      text-align: center;
+      line-height: 80px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .drop {
+      display: inline-block;
+      margin: 10px;
+      padding: 20px;
+      width: 80px;
+      height: 80px;
+      background: lightblue;
+      border: 2px dashed #00bcd4;
+      border-radius: 10px;
+      font-size: 32px;           /* 👈 Bigger size when filled */
+      font-weight: bold;         /* 👈 Optional bold */
+      text-align: center;
+      line-height: 80px;         /* 👈 vertically center the letter */
+      color: #004080;            /* 👈 deep blue for clarity */
+      transition: all 0.3s ease; /* 👈 smooth transition */
+    }
+
+
+    #buttons {
+      margin-top: 20px;
+    }
+
+    #buttons button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 18px;
+      border: none;
+      background-color: #00bcd4;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #mermaid-message {
+      display: none;
+      margin-top: 20px;
+      font-size: 24px;
+      color: #ff4081;
+    }
+
+    /* Glowing Stars */
+    .star-celebration {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 2;
+    }
+
+    .star-celebration img {
+      width: 60px;
+      animation: sparkle 1.5s ease-in-out infinite;
+    }
+  </style>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+<div id="ocean-background">
+  <!-- Marine animals -->
+  <img id="fish" class="marine" src="images\\background\\fish1.png" style="top: 30%; left: 10%;">
+  <img id="starfish-animal" class="marine" src="images\\starfish.png" style="bottom: 10%; left: 10%;">
+  <img id="octopus" class="marine" src="images\\octopus.png" style="top: 50%; right: 20%;"> 
+
+  <!-- Mermaid -->
+  <img id="mermaid-img" class="mermaid" src="images\\background\\Mermaid.png">
+
+  <!-- Celebration Stars -->
+  <div id="celebration-stars" class="star-celebration" style="display:none;">
+    <img src="images\\celebration_star.png" alt="Star">
+    <img src="images\\celebration_star.png" alt="Star">
+    <img src="images\\celebration_star.png" alt="Star">
+  </div>
+
+  <!-- Game Container -->
+  <div id="game-container">
+    <img id="word-image" src="" alt="Word Image">
+    <div id="droppable-areas"></div>
+    <div id="starfish-letters"></div>
+    <div id="mermaid-message">Come on! You can do it! 🧜‍♀️</div>
+    <div id="buttons">
+      <button onclick="nextWord()">Next</button>
+      <button onclick="exitGame()">Exit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audio elements -->
+<audio id="happySound" src="Audio_files\\Voicy_You can do it, Woody!.mp3"></audio>
+<audio id="successSound" src="Audio_files\\aplausos_2_Ke6sVFG.mp3"></audio>
+<audio id="correctSound" src="Audio_files\\correct-ans_ZBwbPlU.mp3"></audio>
+
+<script>
+  let words = [
+    { image: "images\\Apple.png", answer: "APPLE" },
+    { image: "images\\fish2.png", answer: "FISH" },
+    { image: "images\\star.png", answer: "STAR" },
+    { image: "images\\hat.png", answer: "HAT" },
+    { image: "images\\sun.png", answer: "SUN"},
+    { image: "images\\Tree.png", answer: "TREE" },
+    { image: "images\\car.png", answer: "CAR" },
+    { image: "images\\bird.png", answer: "BIRD" },
+    { image: "images\\moon.png", answer: "MOON" },
+    { image: "images\\shoes.png", answer: "SHOE" },
+    { image: "images\\Fox.png", answer: "FOX" },
+    { image: "images\\Frog.png", answer: "FROG" },
+    { image: "images\\Deer.png", answer: "DEER" },
+    { image: "images\\Rain.png", answer: "RAIN" },
+    { image: "images\\Fan.png", answer: "FAN" },
+    { image: "images\\Cake.png", answer: "CAKE" },
+    { image: "images\\Pencil.png", answer: "PENCIL" },
+    { image: "images\\Book.png", answer: "BOOK" },
+    { image: "images\\Ship.png", answer: "SHIP" },
+    { image: "images\\Rose.png", answer: "ROSE" },
+    { image: "images\\bell.png", answer: "BELL" },
+    { image: "images\\coat.png", answer: "COAT" },
+    { image: "images\\Doll.png", answer: "DOLL" },
+    { image: "images\\Ice.png", answer: "ICE" }
+  ];
+  function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)); // random index
+    [array[i], array[j]] = [array[j], array[i]];  // swap elements
+  }
+  return array;
+}
+
+  let currentWordIndex = 0;
+  let attempts = 0;
+
+  function loadWord() {
+    const word = words[currentWordIndex];
+    document.getElementById('word-image').src = word.image;
+    document.getElementById('droppable-areas').innerHTML = '';
+    document.getElementById('starfish-letters').innerHTML = '';
+    document.getElementById('mermaid-message').style.display = 'none';
+    document.getElementById('mermaid-img').style.display = 'none';
+    document.getElementById('celebration-stars').style.display = 'none';
+
+    for (let i = 0; i < word.answer.length; i++) {
+      const drop = document.createElement('div');
+      drop.className = 'drop';
+      drop.ondrop = dropLetter;
+      drop.ondragover = allowDrop;
+      document.getElementById('droppable-areas').appendChild(drop);
+    }
+
+    const shuffled = word.answer.split('').sort(() => Math.random() - 0.5);
+    for (let letter of shuffled) {
+      const star = document.createElement('div');
+      star.className = 'starfish';
+      star.textContent = letter;
+      star.draggable = true;
+      star.ondragstart = drag;
+      document.getElementById('starfish-letters').appendChild(star);
+    }
+  }
+
+  function allowDrop(ev) {
+    ev.preventDefault();
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.textContent);
+  }
+
+  function dropLetter(ev) {
+  ev.preventDefault();
+  const data = ev.dataTransfer.getData("text");
+  if (ev.target.textContent === "") {
+    ev.target.textContent = data;
+
+    // Optional: animate font size increase
+    ev.target.style.fontSize = "36px";
+    ev.target.style.color = "#00224d";  // darker color for better contrast
+    ev.target.style.animation = "bounceIn 0.4s ease";
+    setTimeout(() => {
+      ev.target.style.animation = ""; // Reset so it can replay
+    }, 400);
+  }
+}
+
+
+  function checkAnswer() {
+  const drops = document.querySelectorAll('.drop');
+  const userAnswer = Array.from(drops).map(d => d.textContent).join('');
+  const correctAnswer = words[currentWordIndex].answer;
+
+  if (userAnswer === correctAnswer) {
+    document.getElementById('correctSound').play();
+    document.getElementById('successSound').play();
+    document.getElementById('celebration-stars').style.display = 'flex';
+
+    // Trigger Confetti
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.6 },
+      scalar: 1.2
+    });
+
+    setTimeout(nextWord, 3000);
+  } else {
+    attempts++;
+    document.getElementById('happySound').play();
+    document.getElementById('mermaid-message').style.display = 'block';
+    document.getElementById('mermaid-img').style.display = 'inline';
+
+    const animationClasses = ['fadeOut', 'slideDown', 'bounceOut', 'rotateOut'];
+
+    drops.forEach(drop => {
+      const anim = animationClasses[Math.floor(Math.random() * animationClasses.length)];
+      drop.style.animation = `${anim} 0.6s ease forwards`;
+
+      setTimeout(() => {
+        drop.textContent = '';
+        drop.style.animation = '';
+      }, 600);
+    });
+
+    // 🔁 Reshuffle the starfish letters
+    const shuffled = correctAnswer.split('').sort(() => Math.random() - 0.5);
+    const starfishContainer = document.getElementById('starfish-letters');
+    starfishContainer.innerHTML = '';
+    for (let letter of shuffled) {
+      const star = document.createElement('div');
+      star.className = 'starfish';
+      star.textContent = letter;
+      star.draggable = true;
+      star.ondragstart = drag;
+      starfishContainer.appendChild(star);
+    }
+
+    // After 3 attempts, reveal correct answer in boxes with animation and wait for "Next"
+    if (attempts >= 3) {
+      setTimeout(() => {
+        const revealAnimations = ['revealFade', 'revealBounce', 'revealRotate'];
+        const correctLetters = correctAnswer.split('');
+
+        drops.forEach((drop, index) => {
+          const anim = revealAnimations[Math.floor(Math.random() * revealAnimations.length)];
+          drop.textContent = correctLetters[index];
+          drop.style.animation = `${anim} 0.6s ease forwards`;
+        });
+
+        // Clear starfish so child doesn't retry anymore
+        document.getElementById('starfish-letters').innerHTML = '';
+
+        // ✅ DO NOT call nextWord() automatically — wait for user to press "Next"
+      }, 700);
+    }
+  }
+}
+
+
+
+
+  function nextWord() {
+    currentWordIndex++;
+    if (currentWordIndex >= words.length) {
+      alert('Great Job! You finished all words!');
+      currentWordIndex = 0;
+    }
+    attempts = 0;
+    loadWord();
+  }
+
+  function exitGame() {
+    window.location.href = 'view.html';
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      checkAnswer();
+    }
+  });
+
+  window.onload = function () {
+  words = shuffleArray(words); // Shuffle the array first
+  loadWord(); // Then load the first word
+};
+</script>
+
+</body>
+</html>

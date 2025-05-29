@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Identify the highlighted Body Part</title>
+  <style>
+    /* General body and game container adjustments */
+    body {
+      font-family: 'OpenDyslexic', sans-serif;
+      background: #fff0f0;
+      text-align: center;
+      padding: 20px;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      justify-content: center;
+    }
+
+    .game-container {
+      background: hwb(0 100% 0%);
+      border-radius: 10px;
+      padding: 20px;
+      width: 60%;
+      max-width: 900px; /* Max width for the whole game container */
+      margin: auto;
+      box-shadow: 0 0 10px #00000033;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column; /* Main container stacks vertically: heading, then content, then controls */
+      align-items: center; /* Center items horizontally within the container */
+    }
+
+    /* Heading specific styling */
+    .game-container h2 {
+        margin-top: 0; /* Remove default top margin */
+        margin-bottom: 20px; /* Space below the heading */
+        width: 100%; /* Ensure heading spans full width */
+        text-align: center; /* Center the text */
+    }
+
+    /* Content Area: Body Image (Left) and Jumbled Letters (Right) */
+    .content-area {
+        display: flex;
+        flex-direction: row; /* Arrange children (columns) horizontally */
+        justify-content: space-around; /* Distribute space between columns */
+        align-items: flex-start; /* Align columns to their tops */
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        width: 100%; /* Ensure content area takes full width of game-container */
+    }
+
+    /* Styles for the left and right columns within the content-area */
+    .left-column, .right-column {
+      display: flex;
+      flex-direction: column; /* Stack contents vertically within each column */
+      align-items: center; /* Center contents within each column */
+      padding: 10px;
+      box-sizing: border-box;
+      width: 48%; /* Take up roughly half the width */
+      min-width: 280px; /* Ensure columns don't get too small */
+      margin-bottom: 0;
+    }
+
+    /* Body image and highlight adjustments */
+    .body-image {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      overflow: hidden;
+      margin: 10px auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .body-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .highlight {
+      position: absolute;
+      border: 3px dashed red;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* Jumbled letters container - now a circle and more compact */
+    .jumbled-container {
+      margin-top: 15px;
+      position: relative;
+      width: 280px;
+      height: 280px;
+      border: 2px dashed #a9d9e7;
+      border-radius: 50%;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Jumbled letters - individual circles placed absolutely */
+    .jumbled-letter {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      line-height: 48px;
+      background-color: #d0f0c0;
+      border: 2px solid #bde7a9;
+      border-radius: 50%;
+      font-size: 24px;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+      user-select: none;
+      text-align: center;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.3);
+      transition: transform 0.1s ease-out, background-color 0.1s ease-out;
+      z-index: 3;
+    }
+    .jumbled-letter:hover {
+      transform: scale(1.1);
+      background-color: #bde7a9;
+    }
+    .jumbled-letter.selected {
+      background-color: #87ceeb;
+      border-color: #4682b4;
+      box-shadow: 0 0 15px rgba(65, 105, 225, 0.7);
+    }
+
+    /* Canvas for the connecting line drawing */
+    .drawing-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* --- NEW: Input and Check Button Area --- */
+    .input-check-area {
+        display: flex; /* Use flexbox to put them side-by-side */
+        justify-content: center; /* Center them horizontally */
+        align-items: center; /* Align items vertically */
+        margin-top: 20px; /* Space from the content area above */
+        width: 100%; /* Take full width of game-container */
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    }
+
+    .answer-input {
+      text-align: center;
+      font-size: 20px;
+      max-width: 200px;
+      padding: 8px;
+      /* margin-top removed, now handled by input-check-area */
+      margin: 5px; /* Add small margin for spacing between input and button */
+      border: 2px solid #a9d9e7;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0, 120, 204, 0.3);
+    }
+    .check-button {
+      font-size: 15px;
+      margin: 5px; /* Add small margin for spacing */
+      padding: 8px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+    }
+    .check-button:hover {
+      background-color: #005699;
+    }
+
+    #feedback {
+      font-size: 20px;
+      margin-top: 15px;
+      font-weight: bold;
+      width: 100%; /* Ensure feedback spans full width */
+    }
+
+    /* Control buttons at the bottom */
+    .bottom-controls {
+      display: flex;
+      justify-content: center; /* Center the buttons */
+      width: 100%; /* Take full width */
+      margin-top: 20px; /* Space from the feedback */
+    }
+    .bottom-controls button {
+      padding: 8px 18px;
+      font-size: 15px;
+      margin: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #ffdbac;
+      border: none;
+    }
+    .bottom-controls button:hover {
+      background-color: #ffc66c;
+    }
+
+    /* Reward screen adjustments */
+    #reward-screen {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: hsl(171, 100%, 93%);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      text-align: center;
+      z-index: 10;
+      display: none;
+    }
+    #blast::after {
+      content: "🎊🎉✨🎊🎉✨";
+      font-size: 30px;
+      display: block;
+      margin: 20px 0;
+      animation: explode 2s infinite;
+    }
+    @keyframes explode {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.2); opacity: 0.5; }
+    }
+    #reward-img {
+      width: 120px;
+    }
+
+    /* Background elements adjustments */
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -2;
+    }
+    .bg-cartoon {
+      position: absolute;
+      bottom:20px;
+      width: 180px;
+      height: auto;
+      opacity: 0.95;
+      z-index: 0;
+    }
+    .cartoon-animate {
+      animation: cheer 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes cheer {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+
+    .cheer-message {
+      position: absolute;
+      bottom: 100px;
+      width: 100%;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #0077cc;
+      text-shadow: 1px 1px white;
+      animation: fadeIn 1s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Fact screen adjustments */
+    #fact-screen {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #FFF0E5;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        text-align: center;
+        z-index: 11;
+    }
+    #fact-content {
+        margin-top: 15px;
+        text-align: left;
+    }
+    #fact-visual {
+        text-align: center;
+        margin-top: 8px;
+    }
+    #fact-screen button {
+        padding: 8px 18px;
+        font-size: 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        border: none;
+        margin-right: 10px;
+    }
+    #fact-screen button:first-of-type {
+        background-color: #d0f0c0;
+    }
+    #fact-screen button:last-of-type {
+        background-color: #ff6f69;
+        color: white;
+    }
+
+    /* Media queries for responsiveness on smaller screens */
+    @media (max-width: 768px) {
+      .content-area {
+        flex-direction: column; /* Stack columns vertically on smaller screens */
+        align-items: center;
+      }
+      .left-column, .right-column {
+        width: 95%; /* Full width on smaller screens */
+        min-width: unset; /* Remove min-width restriction */
+      }
+      .input-check-area {
+        flex-direction: column; /* Stack input and button vertically on very small screens */
+      }
+      .answer-input, .check-button {
+        width: 80%; /* Make them take more width when stacked */
+        margin: 5px 0; /* Adjust vertical margin */
+      }
+    }
+    /* Add this to your <style> block */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: red; /* Default color, will be overridden by JS */
+      border-radius: 50%; /* Make them circular */
+      opacity: 0;
+      animation: fall 3s ease-out forwards;
+      z-index: 100; /* Ensure it's on top of other content */
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotateZ(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotateZ(720deg); /* Fall to bottom of viewport */
+        opacity: 0;
+      }
+    }
+
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+</head>
+<body>
+  <img src="images/mickeymouse.jpeg" class="bg-cartoon" style="left: 20px;" />
+  <img src="images/doraemon.jpeg" class="bg-cartoon" style="right: 20px;" />
+  <video autoplay muted loop id="bg-video">
+    <source src="videos/bg.mp4" type="video/mp4">
+    Your browser does not support these video tag.
+  </video>
+  <video id="video" width="300" height="200" autoplay muted playsinline style="display: none;"></video>
+  <audio id="correct-sound" src="audio/correctsound.mp3" preload="auto"></audio>
+  <audio id="wrong-sound" src="audio/wrongsound.mp3" preload="auto"></audio>
+
+  <div class="game-container">
+    <h2>Identify the highlighted Body Part - Round <span id="round-number">1</span></h2>
+
+    <div class="content-area">
+        <div class="left-column">
+            <div class="body-image" id="body-container">
+                <img src="images/body.jpg" alt="Cartoon Body" id="body-image" />
+                <div class="highlight" id="highlight"></div>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="jumbled-container" id="jumbled-letters">
+                </div>
+        </div>
+    </div>
+
+    <div class="input-check-area">
+        <input type="text" id="answer-input" class="answer-input" placeholder="Connect letters to build the word" readonly />
+        <button class="check-button" onclick="checkAnswer()">Check Answer</button>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div class="bottom-controls">
+      <button onclick="startNextRound()">Next</button>
+      <button onclick="exitGame()">Exit</button>
+    </div>
+  </div>
+
+  <div id="fact-screen">
+    <h2 id="fact-title">Cool Fact!</h2>
+    <div id="fact-content">
+      <p id="fun-fact-text"></p>
+      <div id="fact-visual"></div>
+    </div>
+    <div>
+      <button onclick="proceedToNext()">Next</button>
+      <button onclick="exitGame()">Exit</button>
+    </div>
+  </div>
+
+  <div id="reward-screen">
+    <h2 id="reward-title">🎉 You completed the round!</h2>
+    <img id="reward-img" src="" style="width: 150px;">
+    <p>Here’s your cartoon reward!</p>
+    <div id="blast"></div>
+    <button id="next-round-btn" onclick="startNextRound()">Start Next Round</button>
+    <button onclick="exitGame()">Exit</button>
+  </div>
+
+  <div id="emotion-cheer" class="cheer-message" style="display:none;">
+    😊 You're doing great! Keep going!
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+  <script>
+    function triggerPaperBlast() {
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * window.innerWidth + 'px';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.animationDuration = 1 + Math.random() * 1.5 + 's';
+        document.body.appendChild(confetti);
+
+        setTimeout(() => confetti.remove(), 3000); // clean up
+      }
+    }
+
+    function triggerEncouragement() {
+      const cheerMsg = document.getElementById('emotion-cheer');
+      cheerMsg.style.display = 'block';
+
+      // Animate cartoon characters
+      document.querySelectorAll('.bg-cartoon').forEach(img => {
+        img.classList.add('cartoon-animate');
+      });
+
+      setTimeout(() => {
+        cheerMsg.style.display = 'none';
+        document.querySelectorAll('.bg-cartoon').forEach(img => {
+          img.classList.remove('cartoon-animate');
+        });
+      }, 5000); // Show for 5 seconds
+    }
+
+    const rounds = [
+      {
+          bodyParts: [
+              {
+                  name: "Head",
+                  xRatio: 0.50,
+                  yRatio: 0.10,
+                  rRatio: 0.10,
+                  funFact: "The head keeps your brain safe. Your brain helps you think!",
+                  realLifeScenario: "videos/headl.json"
+              },
+              {
+                  name: "Ear",
+                  xRatio: 0.65,
+                  yRatio: 0.27,
+                  rRatio: 0.05,
+                  funFact: "Your ears help you hear sounds all around you.",
+                  realLifeScenario: "videos/earlistening.json"
+              },
+              {
+                  name: "Mouth",
+                  xRatio: 0.50,
+                  yRatio: 0.36,
+                  rRatio: 0.05,
+                  funFact: "The mouth helps you eat, drink, and say words.",
+                  realLifeScenario: "videos/mouth.json"
+              },
+              {
+                  name: "Eye",
+                  xRatio: 0.57,
+                  yRatio: 0.27,
+                  rRatio: 0.05,
+                  funFact: "Your eyes help you see everything!",
+                  realLifeScenario: "videos/eyes.json"
+              },
+              {
+                  name: "Nose",
+                  xRatio: 0.50,
+                  yRatio: 0.30,
+                  rRatio: 0.03,
+                  funFact: "The nose helps you smell and also helps you breathe air.",
+                  realLifeScenario: "videos/nose.json"
+              },
+              {
+                  name: "Chest",
+                  xRatio: 0.50,
+                  yRatio: 0.50,
+                  rRatio: 0.067,
+                  funFact: "Your chest keeps your heart safe inside you and helps you breathe.",
+                  realLifeScenario: "videos/chest.json"
+              }
+          ],
+          rewardImg: "images/chhotabheem.jpeg"
+      },
+      {
+          bodyParts: [
+              {
+                  name: "Belly",
+                  xRatio: 0.50,
+                  yRatio: 0.60,
+                  rRatio: 0.067,
+                  funFact: "Your belly holds your food after you eat.",
+                  realLifeScenario: "images/belly_rubbing.gif"
+              },
+              {
+                  name: "Right Hand",
+                  xRatio: 0.30,
+                  yRatio: 0.64,
+                  rRatio: 0.05,
+                  funFact: "Your right hand can hold things and help you play.",
+                  realLifeScenario: "videos/right hand.json"
+              },
+              {
+                  name: "Left Hand",
+                  xRatio: 0.69,
+                  yRatio: 0.65,
+                  rRatio: 0.05,
+                  funFact: "Both hands help you do things like catch a ball.",
+                  realLifeScenario: "videos/Animation - 1747323451843.json"
+              },
+              {
+                  name: "Ear",
+                  xRatio: 0.65,
+                  yRatio: 0.27,
+                  rRatio: 0.05,
+                  funFact: "You can hear quiet sounds with your ears.",
+                  realLifeScenario: "videos/ear.json"
+              },
+              {
+                  name: "Eye",
+                  xRatio: 0.57,
+                  yRatio: 0.27,
+                  rRatio: 0.05,
+                  funFact: "Your eyes can see things that are near and far.",
+                  realLifeScenario: "videos/eyes.json"
+              },
+              {
+                  name: "Mouth",
+                  xRatio: 0.50,
+                  yRatio: 0.36,
+                  rRatio: 0.05,
+                  funFact: "The mouth helps you eat, drink, and say words.",
+                  realLifeScenario: "videos/mouth.json"
+              },
+              {
+                  name: "Nose",
+                  xRatio: 0.50,
+                  yRatio: 0.30,
+                  rRatio: 0.03,
+                  funFact: "The nose helps you smell and also helps you breathe air.",
+                  realLifeScenario: "videos/nose.json"
+              }
+          ],
+          rewardImg: "images/tomjerry.jpg"
+      },
+      {
+          bodyParts: [
+              {
+                  name: "Right Foot",
+                  xRatio: 0.43,
+                  yRatio: 0.93,
+                  rRatio: 0.05,
+                  funFact: "Your right foot helps you walk, run, and jump.",
+                  realLifeScenario: "images/right_foot_stepping.gif"
+              },
+              {
+                  name: "Left Foot",
+                  xRatio: 0.55,
+                  yRatio: 0.93,
+                  rRatio: 0.05,
+                  funFact: "Your left foot works with your right foot to move.",
+                  realLifeScenario: "images/left_foot_walking.gif"
+              },
+              {
+                  name: "Right Leg",
+                  xRatio: 0.42,
+                  yRatio: 0.80,
+                  rRatio: 0.066,
+                  funFact: "Your right leg is strong and helps you walk.",
+                  realLifeScenario: "videos/rightleg.json"
+              },
+              {
+                  name: "Left Leg",
+                  xRatio: 0.57,
+                  yRatio: 0.75,
+                  rRatio: 0.067,
+                  funFact: "Your left leg helps you run fast.",
+                  realLifeScenario: "images/left_leg_jumping.gif"
+              },
+              {
+                  name: "Mouth",
+                  xRatio: 0.50,
+                  yRatio: 0.36,
+                  rRatio: 0.05,
+                  funFact: "The mouth helps you eat, drink, and say words.",
+                  realLifeScenario: "videos/mouth.json"
+              },
+              {
+                  name: "Nose",
+                  xRatio: 0.50,
+                  yRatio: 0.30,
+                  rRatio: 0.03,
+                  funFact: "Your nose can smell many different things.",
+                  realLifeScenario: "videos/nose.json"
+              },
+              {
+                  name: "Ear",
+                  xRatio: 0.65,
+                  yRatio: 0.27,
+                  rRatio: 0.05,
+                  funFact: "Your ears help you hear sounds all around you.",
+                  realLifeScenario: "videos/ear.json"
+              }
+          ],
+          rewardImg: "images/benten.jpg"
+      }
+    ];
+
+    let currentRound = 0;
+    let currentPart = null;
+    let correctCount = 0;
+
+    // --- NEW JAVASCRIPT FOR CIRCULAR LETTERS AND DRAWING ---
+    let selectedLetters = []; // To store the order of letter DIVs clicked
+    let canvas, ctx; // For drawing lines
+
+    // Helper to shuffle an array
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Initialize canvas when the page loads or when a new question is set up
+    function initDrawingCanvas() {
+      const jumbledContainer = document.getElementById('jumbled-letters');
+      // Remove any existing canvas to prevent duplicates
+      const existingCanvas = jumbledContainer.querySelector('.drawing-canvas');
+      if (existingCanvas) {
+          existingCanvas.remove();
+      }
+
+      canvas = document.createElement('canvas');
+      canvas.classList.add('drawing-canvas');
+      canvas.width = jumbledContainer.clientWidth;
+      canvas.height = jumbledContainer.clientHeight;
+      jumbledContainer.appendChild(canvas);
+      ctx = canvas.getContext('2d');
+      ctx.lineWidth = 4; // Thickness of the connecting line
+      ctx.strokeStyle = '#4682b4'; // Color of the connecting line
+      ctx.lineCap = 'round'; // Rounded ends for the line
+    }
+
+    function showQuestion() {
+      const roundData = rounds[currentRound];
+      const partList = roundData.bodyParts;
+
+      // Ensure we don't pick the same part twice in a row if possible within the round
+      let newPart;
+      const filteredParts = partList.filter(part => part !== currentPart);
+      if (filteredParts.length > 0) {
+          newPart = filteredParts[Math.floor(Math.random() * filteredParts.length)];
+      } else {
+          newPart = partList[Math.floor(Math.random() * partList.length)]; // Fallback if only one part remains or all have been shown
+      }
+      currentPart = newPart;
+
+      const img = document.getElementById('body-image');
+      const highlight = document.getElementById('highlight');
+
+      // Use a brief timeout to ensure the image has rendered with its new size
+      // This helps in accurate highlight placement
+      setTimeout(() => {
+          const width = img.clientWidth;
+          const height = img.clientHeight;
+
+          const x = currentPart.xRatio * width;
+          const y = currentPart.yRatio * height;
+          const r = currentPart.rRatio * width;
+
+          highlight.style.width = `${2 * r}px`;
+          highlight.style.height = `${2 * r}px`;
+          highlight.style.left = `${x - r}px`;
+          highlight.style.top = `${y - r}px`;
+      }, 50); // Small delay
+
+
+      const jumbledContainer = document.getElementById('jumbled-letters');
+      jumbledContainer.innerHTML = ""; // Clear previous jumbled letters
+      initDrawingCanvas(); // Re-initialize canvas to ensure it's on top and clear
+
+      document.getElementById('answer-input').value = ""; // Clear input field
+      document.getElementById('feedback').textContent = ""; // Clear feedback
+
+      selectedLetters = []; // Reset selected letters for new round
+
+      const bodyPartName = currentPart.name.toUpperCase().replace(/\s/g, '');
+      let lettersArray = bodyPartName.split('');
+      const jumbledLetters = shuffleArray([...lettersArray]); // Use a copy for shuffling
+
+      const numLetters = jumbledLetters.length;
+      const letterSize = 48; // Match .jumbled-letter width/height
+      const containerPadding = 10; // Space from container edge
+      const radius = (jumbledContainer.clientWidth / 2) - (letterSize / 2) - containerPadding; // Radius for letter placement
+      const centerX = jumbledContainer.clientWidth / 2;
+      const centerY = jumbledContainer.clientHeight / 2;
+
+      jumbledLetters.forEach((letter, index) => {
+        // Start at top (-PI/2) for better visual, rotate clockwise
+        const angle = (index / numLetters) * 2 * Math.PI - (Math.PI / 2);
+        const letterX = centerX + radius * Math.cos(angle) - (letterSize / 2); // Subtract half letter size
+        const letterY = centerY + radius * Math.sin(angle) - (letterSize / 2); // Subtract half letter size
+
+        const letterDiv = document.createElement('div');
+        letterDiv.classList.add('jumbled-letter');
+        letterDiv.textContent = letter;
+        letterDiv.style.left = `${letterX}px`;
+        letterDiv.style.top = `${letterY}px`;
+        letterDiv.dataset.originalLetter = letter; // Store the original letter for validation
+
+        // Add click event listener to connect letters
+        letterDiv.addEventListener('click', () => handleLetterClick(letterDiv, letter));
+        jumbledContainer.appendChild(letterDiv);
+      });
+
+      document.getElementById('round-number').textContent = currentRound + 1;
+    }
+
+    function handleLetterClick(clickedLetterDiv, letter) {
+      const feedback = document.getElementById('feedback');
+      const correctWord = currentPart.name.toUpperCase().replace(/\s/g, '');
+
+      // If the clicked letter is already selected and it's the last one, allow unselecting
+      // or if it's earlier in the sequence, clear from that point onwards
+      const existingIndex = selectedLetters.indexOf(clickedLetterDiv);
+      if (existingIndex !== -1) {
+        // If clicking a previously selected letter, clear subsequent selections
+        for (let i = existingIndex + 1; i < selectedLetters.length; i++) {
+          selectedLetters[i].classList.remove('selected');
+        }
+        selectedLetters.splice(existingIndex + 1); // Remove from the point of click onwards
+        drawConnectingLines(); // Redraw lines
+        updateAnswerInput();
+        feedback.textContent = ""; // Clear any previous feedback
+        return;
+      }
+
+      // Check if the clicked letter is the next in sequence or the first letter
+      const nextExpectedLetter = correctWord[selectedLetters.length];
+
+      if (letter === nextExpectedLetter) {
+        clickedLetterDiv.classList.add('selected');
+        selectedLetters.push(clickedLetterDiv);
+        drawConnectingLines(); // Draw a new line
+        updateAnswerInput();
+        feedback.textContent = ""; // Clear feedback on correct selection
+      } else {
+        feedback.textContent = `❌ The next one is '${nextExpectedLetter || 'the first letter'}'. Try again!`;
+        feedback.style.color = "red";
+        wrongSound.play();
+      }
+    }
+
+    function updateAnswerInput() {
+      document.getElementById('answer-input').value = selectedLetters.map(div => div.textContent).join('');
+    }
+
+    // Function to draw lines between selected letters
+    function drawConnectingLines() {
+      if (!ctx) return; // Ensure canvas context exists
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear entire canvas
+
+      if (selectedLetters.length <= 1) {
+        return; // Need at least two points to draw a line
+      }
+
+      ctx.beginPath();
+      for (let i = 0; i < selectedLetters.length; i++) {
+        const letterDiv = selectedLetters[i];
+        // Calculate center of the letter div relative to the jumbled-container
+        const x = letterDiv.offsetLeft + letterDiv.clientWidth / 2;
+        const y = letterDiv.offsetTop + letterDiv.clientHeight / 2;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+    }
+    // Get references to your audio elements
+    const correctSound = document.getElementById('correct-sound');
+    const wrongSound = document.getElementById('wrong-sound');
+
+    function checkAnswer() {
+      const feedback = document.getElementById('feedback');
+      const userAnswer = document.getElementById('answer-input').value.toUpperCase().replace(/\s/g, '');
+      const correctWord = currentPart.name.toUpperCase().replace(/\s/g, '');
+
+      if (userAnswer === correctWord) {
+        feedback.textContent = "✅ Correct!";
+        feedback.style.color = "green";
+        correctSound.currentTime = 0; // Rewind to the start
+        correctSound.play(); // Play the correct sound
+
+        // Clear all selections and lines on correct answer
+        selectedLetters.forEach(div => div.classList.remove('selected'));
+        selectedLetters = [];
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+        }
+
+        setTimeout(() => {
+          document.querySelector('.game-container').style.display = 'none';
+          displayFactScreen(currentPart);
+        }, 1000);
+
+        correctCount++;
+      } else {
+        feedback.textContent = "❌ Not quite! The order of connected letters is incorrect. Try again!";
+        feedback.style.color = "red";
+        wrongSound.currentTime = 0; // Rewind to the start
+        wrongSound.play(); // Play the wrong sound
+
+        // Clear selections and lines on incorrect answer to allow user to retry
+        selectedLetters.forEach(div => div.classList.remove('selected'));
+        selectedLetters = [];
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        document.getElementById('answer-input').value = ""; // Clear input
+      }
+    }
+    function displayFactScreen(bodyPart) {
+        const factTitle = document.getElementById('fact-title');
+        const funFactText = document.getElementById('fun-fact-text');
+        const factVisual = document.getElementById('fact-visual');
+        const factScreen = document.getElementById('fact-screen');
+
+        factTitle.textContent = "Cool Fact about " + bodyPart.name + "!";
+        funFactText.textContent = bodyPart.funFact || "";
+        factVisual.innerHTML = ""; // Clear previous visual
+
+        if (bodyPart.realLifeScenario) {
+            if (bodyPart.realLifeScenario.endsWith('.gif') || bodyPart.realLifeScenario.endsWith('.jpg') || bodyPart.realLifeScenario.endsWith('.png')) {
+                const img = document.createElement('img');
+                img.src = bodyPart.realLifeScenario;
+                img.style.width = '250px'; // or any preferred size
+                img.style.height = 'auto'; // to maintain aspect ratio
+
+                factVisual.appendChild(img);
+            } else if (bodyPart.realLifeScenario.endsWith('.mp4') || bodyPart.realLifeScenario.endsWith('.webm')) {
+                const video = document.createElement('video');
+                video.src = bodyPart.realLifeScenario;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.style.maxWidth = '150px';
+                factVisual.appendChild(video);
+            } else if (bodyPart.realLifeScenario.endsWith('.json')) {
+                // Remove previous Lottie animation instance if it exists
+                if (factVisual.lottieAnimation) {
+                    factVisual.lottieAnimation.destroy();
+                }
+                factVisual.style.width = '250px';
+                factVisual.style.height = '250px';
+                // Load and play Lottie animation
+                factVisual.lottieAnimation = lottie.loadAnimation({ // Store animation instance
+                    container: factVisual, // the dom element that will contain the animation
+                    loop: true,
+                    autoplay: true,
+                    path: bodyPart.realLifeScenario // the path to the animation json
+                });
+            } else {
+                const noVisual = document.createElement('p');
+                noVisual.textContent = 'No visual available.';
+                factVisual.appendChild(noVisual);
+            }
+        }
+
+        factScreen.style.display = 'block';
+    }
+
+    function proceedToNext() {
+        // Destroy Lottie animation if it exists before proceeding
+        const factVisual = document.getElementById('fact-visual');
+        if (factVisual.lottieAnimation) {
+            factVisual.lottieAnimation.destroy();
+            factVisual.lottieAnimation = null; // Clear reference
+        }
+
+        document.getElementById('fact-screen').style.display = 'none';
+        document.querySelector('.game-container').style.display = 'flex'; // Show the game container again
+        // Check if all body parts for the current round have been asked
+        const uniquePartsInRound = new Set(rounds[currentRound].bodyParts.map(p => p.name.toLowerCase()));
+        if (correctCount >= uniquePartsInRound.size) {
+            setTimeout(showReward, 100); // Small delay before showing reward
+        } else {
+            showQuestion();
+        }
+    }
+
+    function showReward() {
+        document.querySelector('.game-container').style.display = 'none';
+        document.getElementById('reward-screen').style.display = 'block';
+
+        const rewardImage = rounds[currentRound].rewardImg;
+        document.getElementById('reward-img').src = rewardImage;
+
+        triggerPaperBlast();
+
+        if (currentRound === rounds.length - 1) {
+          document.getElementById('next-round-btn').style.display = 'none';
+
+          const restartBtn = document.createElement('button');
+          restartBtn.textContent = "Restart Game";
+          restartBtn.onclick = () => {
+            currentRound = 0;
+            correctCount = 0;
+            document.getElementById('reward-screen').style.display = 'none';
+            document.querySelector('.game-container').style.display = 'flex'; // Ensure it's flex on restart
+            showQuestion();
+          };
+          document.getElementById('reward-screen').appendChild(restartBtn);
+        } else {
+          document.getElementById('next-round-btn').style.display = 'inline-block';
+        }
+    }
+
+    function startNextRound() {
+      if (currentRound >= rounds.length - 1) {
+        exitGame(); // End game if all rounds are completed
+        return;
+      }
+      currentRound++;
+      correctCount = 0; // Reset correct count for the new round
+      document.querySelector('.game-container').style.display = 'flex'; // Ensure it's flex when going to next round
+      document.getElementById('reward-screen').style.display = 'none';
+      showQuestion();
+    }
+
+    function exitGame() {
+      alert("🎮 Thank you for playing the JoyVerse Body Part Game!");
+      window.location.href = "view.html"; // Reloads the page to restart the game
+    }
+
+    window.onload = () => {
+      const bodyImage = document.getElementById('body-image');
+      if (bodyImage.complete) {
+          showQuestion();
+      } else {
+          bodyImage.onload = showQuestion;
+      }
+      // Initialize the canvas early to ensure it's ready
+      initDrawingCanvas();
+
+      // Trigger encouragement periodically
+      setInterval(() => {
+        const childIsSad = Math.random() < 0.4; // 40% chance to simulate sadness
+        if (childIsSad) {
+          triggerEncouragement();
+        }
+      }, 120000); // every 2 minutes
+    };
+
+    // Ensure the canvas is correctly sized and redrawn on window resize
+    window.addEventListener('resize', () => {
+        // Re-initialize canvas to adjust its size based on new container dimensions
+        initDrawingCanvas();
+        // Re-call showQuestion to re-position letters based on new container size
+        // and ensure highlight is correct, and lines are redrawn.
+        showQuestion();
+    });
+
+  </script>
+</body>
+</html>

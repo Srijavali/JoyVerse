@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word Slice Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: url('https://png.pngtree.com/background/20230410/original/pngtree-forest-cartoon-background-picture-image_2383687.jpg') no-repeat center center/cover;
+      overflow: hidden;
+    }
+
+    h1 {
+      text-align: center;
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+    }
+
+    #game-area {
+      position: relative;
+      width: 100vw;
+      height: 80vh;
+      overflow: hidden;
+    }
+
+    .fruit {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background-size: cover;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      line-height: 120px;
+      border-radius: 60px;
+      cursor: pointer;
+      background-position: center;
+      animation: floatY linear forwards;
+    }
+
+    @keyframes floatY {
+      0% { transform: translateY(100vh); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-150px); opacity: 0; }
+    }
+
+    #word-display {
+      text-align: center;
+      font-size: 28px;
+      background-color: #ff6347;
+      color: white;
+      padding: 10px;
+      margin: 0 auto 10px;
+      border-radius: 10px;
+      width: fit-content;
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .encouragement {
+      position: absolute;
+      font-size: 24px;
+      font-weight: bold;
+      color: yellow;
+      animation: fadeUp 1s ease-out forwards;
+      z-index: 1000;
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-30px); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🍓 Word Slice Game 🍓</h1>
+
+  <div id="word-display">Word</div>
+  <div id="score">Score: 0</div>
+  <div id="game-area"></div>
+
+  <!-- Audio -->
+  <audio id="correct-sound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+  <audio id="wrong-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+  <audio id="slice-sound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+
+  <!-- Webcam elements -->
+  <video id="webcam" autoplay playsinline width="200" style="position: absolute; top: 0; left: 0; display: none;"></video>
+  <canvas id="canvas" style="display: none;"></canvas>
+
+  <!-- Emotion Detection Script -->
+  <script>
+    const webcam = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    async function setupWebcam() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      webcam.srcObject = stream;
+      return new Promise((resolve) => {
+        webcam.onloadedmetadata = () => resolve();
+      });
+    }
+
+    async function captureAndSendEmotion() {
+      canvas.width = webcam.videoWidth;
+      canvas.height = webcam.videoHeight;
+      ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg');
+
+      try {
+        const res = await fetch('http://localhost:5000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUrl })
+        });
+
+        const data = await res.json();
+        if (data.expression === 'sad'|| data.expression=='angry') {
+          showMotivationalText("Cheer up! You're doing great! 🎉");
+        }
+      } catch (err) {
+        console.error('Emotion detection error:', err);
+      }
+    }
+
+    function showMotivationalText(msg) {
+      const text = document.createElement('div');
+      text.className = 'encouragement';
+      text.textContent = msg;
+      text.style.left = '50%';
+      text.style.top = '20%';
+      text.style.transform = 'translateX(-50%)';
+      document.getElementById("game-area").appendChild(text);
+      setTimeout(() => text.remove(), 2500);
+    }
+
+    // Start webcam and emotion checking every 7 seconds
+    setupWebcam().then(() => {
+      setInterval(captureAndSendEmotion, 7000);
+    });
+  </script>
+
+  <!-- Game Script -->
+  <script>
+    const words = [
+      { word: "cat", options: ["cat", "cap", "bat", "cot"] },
+      { word: "dog", options: ["dot", "dog", "dig", "log"] },
+      { word: "hat", options: ["hat", "hot", "hit", "mat"] },
+      { word: "sun", options: ["sun", "fun", "run", "sin"] },
+    ];
+
+    const fruitImages = [
+      "https://static.vecteezy.com/system/resources/previews/012/482/261/original/fresh-cartoon-orange-fruit-in-animated-icon-clipart-vector.jpg",
+      "https://static.vecteezy.com/ti/vecteur-libre/p2/2794351-cartoon-vector-illustration-isolated-object-fresh-food-fruit-green-apple-vectoriel.jpg",
+      "https://www.kindpng.com/picc/m/42-425286_cartoon-single-fruits-and-vegetables-hd-png-download.png",
+      "https://img.freepik.com/premium-vector/delicious-mango_642458-531.jpg?w=2000"
+    ];
+
+    const encouragements = ["Great!", "Awesome!", "Good job!", "Well done!"];
+    let currentWord = null;
+    let score = 0;
+    const gameArea = document.getElementById("game-area");
+    const scoreDisplay = document.getElementById("score");
+    const correctSound = document.getElementById("correct-sound");
+    const wrongSound = document.getElementById("wrong-sound");
+    const sliceSound = document.getElementById("slice-sound");
+
+    function updateScore(val) {
+      score += val;
+      scoreDisplay.textContent = `Score: ${score}`;
+    }
+
+    function showEncouragement(x, y) {
+      const msg = encouragements[Math.floor(Math.random() * encouragements.length)];
+      const text = document.createElement("div");
+      text.className = "encouragement";
+      text.textContent = msg;
+      text.style.left = `${x}px`;
+      text.style.top = `${y}px`;
+      gameArea.appendChild(text);
+      setTimeout(() => text.remove(), 1000);
+    }
+
+    function showWords() {
+      const wordDisplay = document.getElementById("word-display");
+      gameArea.innerHTML = "";
+
+      const randomSet = words[Math.floor(Math.random() * words.length)];
+      currentWord = randomSet.word;
+      wordDisplay.textContent = `Slice: ${currentWord}`;
+
+      const slots = [10, 30, 50, 70];
+      randomSet.options.sort(() => 0.5 - Math.random());
+
+      randomSet.options.forEach((option, index) => {
+        const fruit = document.createElement("div");
+        fruit.className = "fruit";
+        fruit.innerText = option;
+        fruit.style.backgroundImage = `url(${fruitImages[index % fruitImages.length]})`;
+        fruit.style.left = `${slots[index % slots.length]}%`;
+        fruit.style.animationDuration = `${Math.random() * 3 + 8}s`;
+        fruit.onclick = (e) => checkAnswer(option, fruit, e.clientX, e.clientY);
+
+        setTimeout(() => {
+          if (fruit.parentElement === gameArea) {
+            fruit.remove();
+          }
+        }, 10000);
+
+        gameArea.appendChild(fruit);
+      });
+
+      setTimeout(showWords, 7000);
+    }
+
+    function checkAnswer(selected, element, x, y) {
+      if (selected === currentWord) {
+        correctSound.play();
+        sliceSound.play();
+        updateScore(10);
+        showEncouragement(x, y);
+        element.remove();
+      } else {
+        wrongSound.play();
+        updateScore(-5);
+        element.remove();
+      }
+    }
+
+    showWords();
+  </script>
+</body>
+</html>

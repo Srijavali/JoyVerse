@@ -1,0 +1,19 @@
+# Ignore Python virtual environments
+venv/
+myenv/
+**/venv/
+**/myenv/
+
+# Ignore Python bytecode
+__pycache__/
+*.py[cod]
+*.pyd
+
+# Ignore large files and metadata
+*.dll
+*.lib
+*.so
+*.dist-info/
+*.egg-info/
+.DS_Store
+*.log

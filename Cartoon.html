@@ -19,10 +19,10 @@
     }
    
     /* Fullscreen video */
-    #bgVideo {
+   #bgVideo {
   position: fixed;
   top: 25%;
-  left: 45%;
+  left: 65%; 
   transform: translate(-50%, -50%);
   min-width: 100vw;
   min-height: 100vh;
@@ -34,23 +34,29 @@
   filter: brightness(0.8); /* Optional, dim effect */
 }
 
-  /* Ocean Container — place wherever you want (default: center) */
-    .ocean-container {
-      position: absolute;
-      top: 50%;         /* You can adjust this */
-      left: 50%;        /* You can adjust this */
-      transform: translate(-50%, -50%);
-      background: rgba(0, 255, 255, 0.15);
-      border: 4px dashed #00ffff;
-      border-radius: 40px;
-      padding: 40px;
-      text-align: center;
-      max-width: 400px;
-      animation: float 4s ease-in-out infinite;
-      box-shadow: 0 0 25px #00eaff, 0 0 50px #00eaff inset;
-      backdrop-filter: blur(5px);
-      z-index: 2;
-    }
+
+    
+  .ocean-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-image: url("https://lovepik.com/images/png-cartoonborder.html");
+  background-size: cover;
+  width: 400px;
+  height: 300px;
+  padding: 40px;
+  text-align: center;
+  animation: float 4s ease-in-out infinite;
+  box-shadow: 0 0 25px #418390, 0 0 50px #4dafb2 inset;
+  backdrop-filter: blur(5px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 
     .title {
       color: #fff;
@@ -100,18 +106,12 @@
 
   <!-- Fullscreen Background Video -->
   <video autoplay muted loop playsinline id="bgVideo">
-    <source src="video\\Marine_interface_bg_video.mp4" type="video/mp4">
+    <source src="video\Untitled design (8).mp4" type="video/mp4">
    </video>
   
-
-  <!-- Background Ocean Sound -->
-  <audio id="bgSound" autoplay loop>
-    <source src="Audio_files\\copy-of-ocean-wave-1-online-audio-converter.mp3" type="audio/mpeg">
-  </audio>
-
   <!-- Floating Container -->
   <div class="ocean-container">
-    <h1 class="title">Welcome to Ocean World!</h1>
+    <h1 class="title">Welcome to Cartoon World!</h1>
     <div class="button-wrapper">
       <button class="play-btn" onclick="playSound('play')">▶ Play</button>
       <button class="exit-btn" onclick="playSound('exit')">⛔ Exit</button>
@@ -119,36 +119,32 @@
   </div>
 
   <!-- Click Sounds -->
-  <audio id="playSound" src="Audio_files\\studio-audience-awwww-sound-fx.mp3"></audio>
-  <audio id="exitSound" src="Audio_files\\mouse-click-sound-fx.mp3"></audio>
+  <audio id="playSound" src="Audio_files\studio-audience-awwww-sound-fx.mp3"></audio>
+  <audio id="exitSound" src="Audio_files\mouse-click-sound-fx.mp3"></audio>
 
-  <script>
+<script>
   function playSound(type) {
     if (type === 'play') {
-      const sound = document.getElementById('playSound');
-      sound.play();
-      sound.onended = function () {
-        window.location.href = 'StarfishSpelling game.html';
-      };
+      document.getElementById('playSound').play();
+      setTimeout(() => {
+        window.location.href = "cartoonGame.html";
+      }, 3000); // Delay to let the sound play
     } else {
-      const sound = document.getElementById('exitSound');
-      sound.play();
-      sound.onended = function () {
-        window.location.href = 'view.html';
-      };
+      document.getElementById('exitSound').play();
+      setTimeout(() => {
+        window.location.href = "view.html";
+      }, 400);
     }
   }
 
   // Ensure ocean sound starts after user interaction
   window.addEventListener('click', () => {
     const bgSound = document.getElementById("bgSound");
-    if (bgSound.paused) {
+    if (bgSound && bgSound.paused) {
       bgSound.play();
     }
   });
 </script>
-  
+
 </body>
 </html>
-
-

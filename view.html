@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JoyVerse</title>
+  <style>
+    /* Reset & Font */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Comic Sans MS', cursive;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    /* Hero section with sticky video background */
+    .hero-section {
+      position: relative;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .hero-section video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    .hero-content {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      padding: 20px;
+      background: transparent; /* Removed overlay to preserve actual video color */
+    }
+
+    .hero-content h1 {
+      font-size: 64px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .hero-content p {
+      font-size: 20px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .section-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.section-buttons a {
+  padding: 15px 30px;
+  font-size: 20px;
+  background-color: #2e86ab;
+  color: white;
+  border-radius: 30px;
+  text-decoration: none;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Drop shadow */
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  transform: scale(1);
+}
+
+/* Hover effects */
+.section-buttons a:hover {
+  background-color: #1b5774;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+  transform: scale(1.05); /* Slight zoom */
+}
+
+/* Optional: ripple effect or glow */
+.section-buttons a::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.6s;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.section-buttons a:active::after {
+  transform: translate(-50%, -50%) scale(1);
+  transition: 0s;
+}
+
+
+    /* Fully opaque child and parent sections - no transparency */
+    section.game-section {
+      position: relative;
+      padding: 80px 20px;
+      background-color: #C2D6E8;  /* solid white background */
+      z-index: 1;
+      min-height: 100vh;
+      backdrop-filter: none;
+      transition: none;
+      box-shadow: none;
+    }
+
+    section.game-section h2 {
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 36px;
+      color: #2e86ab;
+    }
+
+    .game-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+}
+
+.game-box {
+  width: 200px;
+  background: #C2D6E8;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  padding: 10px;
+  text-align: center;
+}
+
+.game-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.game-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 15px;
+  transition: transform 0.3s ease;
+}
+
+.game-box:hover .game-image {
+  transform: scale(1.05);
+}
+
+.game-label {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #2e86ab;
+  font-weight: bold;
+}
+
+
+    footer {
+      background-color: #2e86ab;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+      font-size: 16px;
+    }
+
+    footer a {
+      color: #fdd835;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .hero-content h1 {
+        font-size: 40px;
+      }
+
+      .hero-content p {
+        font-size: 16px;
+      }
+
+      .game-box {
+        width: 150px;
+        height: 150px;
+        font-size: 16px;
+      }
+
+      .section-buttons {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+
+    .game-section {
+  padding: 60px 20px;
+  background: #f9f9f9;
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.game-section h2 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.info-box, .dyslexia-box {
+  max-width: 700px;
+  margin: 30px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.info-box p, .dyslexia-box p {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #444;
+}
+
+.dyslexia-box h1 {
+  font-size: 2rem;
+  color: #2e86ab;
+  margin-bottom: 15px;
+}
+
+.caption {
+  font-style: italic;
+  color: #555;
+}
+
+.primary-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #2e86ab;
+  color: white;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.primary-button:hover {
+  background-color: #1e5e7a;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.primary-button:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Hero Section with Sticky Video -->
+  <div class="hero-section">
+    <video autoplay muted loop playsinline>
+      <source src="video/Untitled design (5).mp4" type="video/mp4" />
+    </video>
+    <div class="hero-content">
+      <h1>JoyVerse</h1>
+      <p>Spreading Joy Through Learning Adventures</p>
+      <div class="section-buttons">
+        <a href="#parent">For Parents</a>
+        <a href="#child">For Children</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Child Section -->
+<section class="game-section" id="child">
+  <h2>Choose Your Adventure</h2>
+  <div class="game-grid">
+
+    <div class="game-box" onclick="window.location.href='marine.html'">
+      <img class="game-image" src="images\Marine_explorer.png" alt="Marine World">
+      <div class="game-label">🌊 Marine World</div>
+    </div>
+    
+
+    <div class="game-box" onclick="window.location.href='forest.html'">
+      <img class="game-image" src="images\Forest_explore.png" alt="Forest Quest">
+      <div class="game-label">🌲 Forest Quest</div>
+    </div>
+
+    <div class="game-box" onclick="window.location.href='space.html'">
+      <img class="game-image" src="images\Space_explore.png" alt="Space Journey">
+      <div class="game-label">🚀 Space Journey</div>
+    </div>
+
+    <div class="game-box" onclick="window.location.href='disney.html'">
+      <img class="game-image" src="images\Disney_explorer.png" alt="Disney Dreams">
+      <div class="game-label">🏰 Disney Dreams</div>
+    </div>
+
+    <div class="game-box" onclick="window.location.href='Cartoon.html'">
+      <img class="game-image" src="images\Cartoon_explorer.png" alt="Cartoon Land">
+      <div class="game-label">🎨 Cartoon Land</div>
+    </div>
+
+  </div>
+</section>
+
+
+  <!-- Parent Section -->
+<section class="game-section" id="parent">
+  <h2>For Parents</h2>
+  <div class="info-box">
+    <p>
+      Learn about your child’s progress, view reports, and connect with the JoyVerse community.
+    </p>
+    <a href="reports.html" class="primary-button">📊 View Reports</a>
+  </div>
+
+  <div class="dyslexia-box">
+    <h1>Dyslexic Association Of India</h1>
+    <p class="caption">Helping children bloom in their own season — and in their own way</p>
+    <p class="caption">Together with you, we rewrite the story of learning. 😊</p>
+    <a href="https://dyslexiaindia.org.in/" target="_blank" class="primary-button">🌐 Open</a>
+  </div>
+</section>
+
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 JoyVerse. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Contact Us</a></p>
+    <p>Crafted with ❤️ for joyful learning and discovery.</p>
+  </footer>
+
+</body>
+</html>
+
+
+
